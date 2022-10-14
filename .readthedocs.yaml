@@ -1,0 +1,8 @@
+version: 2
+
+formats: all
+
+python:
+  install:
+    - path: .
+    - requirements: doc-requirements.txt
