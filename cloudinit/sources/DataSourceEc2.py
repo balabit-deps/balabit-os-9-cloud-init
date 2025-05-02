@@ -24,7 +24,7 @@ from cloudinit.event import EventScope, EventType
 from cloudinit.net import netplan
 from cloudinit.net.dhcp import NoDHCPLeaseError
 from cloudinit.net.ephemeral import EphemeralIPNetwork
-from cloudinit.sources import NicOrder
+from cloudinit.sources import HotplugRetrySettings, NicOrder
 from cloudinit.sources.helpers import ec2
 
 LOG = logging.getLogger(__name__)
@@ -34,7 +34,6 @@ STRICT_ID_DEFAULT = "warn"
 
 
 class CloudNames:
-    ALIYUN = "aliyun"
     AWS = "aws"
     BRIGHTBOX = "brightbox"
     ZSTACK = "zstack"
@@ -54,7 +53,7 @@ def skip_404_tag_errors(exception):
 
 
 # Cloud platforms that support IMDSv2 style metadata server
-IDMSV2_SUPPORTED_CLOUD_PLATFORMS = [CloudNames.AWS, CloudNames.ALIYUN]
+IDMSV2_SUPPORTED_CLOUD_PLATFORMS = [CloudNames.AWS]
 
 # Only trigger hook-hotplug on NICs with Ec2 drivers. Avoid triggering
 # it on docker virtual NICs and the like. LP: #1946003
@@ -114,6 +113,7 @@ class DataSourceEc2(sources.DataSource):
     }
 
     extra_hotplug_udev_rules = _EXTRA_HOTPLUG_UDEV_RULES
+    hotplug_retry_settings = HotplugRetrySettings(True, 5, 30)
 
     def __init__(self, sys_cfg, distro, paths):
         super(DataSourceEc2, self).__init__(sys_cfg, distro, paths)
@@ -125,6 +125,7 @@ class DataSourceEc2(sources.DataSource):
         super()._unpickle(ci_pkl_version)
         self.extra_hotplug_udev_rules = _EXTRA_HOTPLUG_UDEV_RULES
         self._fallback_nic_order = NicOrder.MAC
+        self.hotplug_retry_settings = HotplugRetrySettings(True, 5, 30)
 
     def _get_cloud_name(self):
         """Return the cloud name as identified during _get_data."""
@@ -775,11 +776,6 @@ def warn_if_necessary(cfgval, cfg):
     warnings.show_warning("non_ec2_md", cfg, mode=True, sleep=sleep)
 
 
-def identify_aliyun(data):
-    if data["product_name"] == "Alibaba Cloud ECS":
-        return CloudNames.ALIYUN
-
-
 def identify_aws(data):
     # data is a dictionary returned by _collect_platform_data.
     uuid_str = data["uuid"]
@@ -828,7 +824,6 @@ def identify_platform():
         identify_zstack,
         identify_e24cloud,
         identify_outscale,
-        identify_aliyun,
         lambda x: CloudNames.UNKNOWN,
     )
     for checker in checks:
@@ -893,7 +888,7 @@ def _build_nic_order(
     @return: Dictionary with macs as keys and nic orders as values.
     """
     nic_order: Dict[str, int] = {}
-    if len(macs_to_nics) == 0 or len(macs_metadata) == 0:
+    if (not macs_to_nics) or (not macs_metadata):
         return nic_order
 
     valid_macs_metadata = filter(
