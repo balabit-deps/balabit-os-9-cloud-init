@@ -6,10 +6,10 @@ Description: Revert systemdunint dir changes on jammy due debhelper
  for clean boots. Revert commit 05473492
 Author: Chad Smith <chad.smith@canonical.com>
 Bug: https://bugs.launchpad.net/ubuntu/+source/cloud-init/+bug/2113797
-Last-Update: 2025-06-09
+Last-Update: 2025-08-03
 --- a/setup_utils.py
 +++ b/setup_utils.py
-@@ -16,11 +16,11 @@ def pkg_config_read(library: str, var: s
+@@ -21,11 +21,11 @@ def pkg_config_read(library: str, var: s
      fallbacks = {
          "systemd": {
              "systemdsystemconfdir": "/etc/systemd/system",
@@ -23,4 +23,4 @@ Last-Update: 2025-06-09
 +            "udevdir": "/lib/udev",
          },
      }
-     cmd = ["pkg-config", f"--variable={var}", library]
+     cmd = [pkg_config, f"--variable={var}", library]
