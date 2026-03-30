@@ -1,6 +1,28 @@
+cloud-init (26.1-0ubuntu1~22.04.1) jammy; urgency=medium
+
+  * d/p/0001-Revert-fix-DNS-resolution-performance-regression-dur.patch revert Ec2 URL change 
+  * d/p/0001-Revert-fix-support-bond-names-in-network_data.patch revert bond name change
+  * d/rules: provide PACKAGED_VERSION env var to force setuptools version to
+    match downstream DEB_VERSION
+  * refresh patches:
+    - d/p/no-nocloud-network.patch
+    - d/p/no-single-process.patch
+    - d/p/retain-ec2-default-net-update-events.patch
+    - d/p/retain-setuptools.patch. Read PACKAGED_VERSION environment variable
+    - d/p/revert-551f560d-cloud-config-after-snap-seeding.patch
+    - d/p/status-do-not-remove-duplicated-data.patch
+    - d/p/status-retain-recoverable-error-exit-code.patch
+  * Upstream snapshot based on upstream/main at 52ef4d17.
+  * Upstream snapshot based on 26.1. (LP: #2146833).
+    List of changes from upstream can be found at
+    https://raw.githubusercontent.com/canonical/cloud-init/26.1/ChangeLog
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 30 Mar 2026 12:56:49 -0600
+
 cloud-init (25.3-0ubuntu1~22.04.1) jammy; urgency=medium
 
   * d/p/retain-setuptools.patch: void upstream switch to meson build backend.
+  * d/changelog: amend 25.2-0 missing d/cloud-init.templates entry
   * refresh patches:
     - d/p/cli-retain-file-argument-as-main-cmd-arg.patch
     - d/p/grub-dpkg-support.patch
@@ -28,6 +50,9 @@ cloud-init (25.2-0ubuntu1~22.04.1) jammy; urgency=medium
   * add d/p/strip-invalid-mtu.patch
     - Provides backwards compatibility for an other invalid
       MTU in a netplan config. (GH-6239)
+  * d/cloud-init.templates:
+    - Move VMware before OVF. See GH-4030
+    - Enable CloudCIX by default
   * Upstream snapshot based on 25.2. (LP: #2120495).
     List of changes from upstream can be found at
     https://raw.githubusercontent.com/canonical/cloud-init/25.2/ChangeLog
